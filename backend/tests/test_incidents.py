@@ -1,16 +1,13 @@
-from pathlib import Path
-
 from fastapi.testclient import TestClient
 
 
 def payload(case: str = "02_null_handling_regression") -> dict[str, str]:
-    root = Path(__file__).resolve().parents[2]
     return {
         "title": "Discount API returns 500",
         "description": "Orders without promo codes now fail consistently.",
         "logs": "AttributeError: 'NoneType' object has no attribute 'strip'",
         "stack_trace": "app.py:2 in normalize",
-        "repository_path": str(root / "evaluation_cases" / case),
+        "repository_path": case,
         "severity": "high",
     }
 

@@ -111,7 +111,7 @@ export default function NewIncident() {
             />
           </label>
           <label className="block text-sm text-[#aeb6c7]">
-            Approved repository path{" "}
+            Controlled demo repository{" "}
             <span className="text-[#6e788c]">
               (optional, demo sandbox only)
             </span>
@@ -121,11 +121,23 @@ export default function NewIncident() {
                 size={16}
                 color="#788398"
               />
-              <input
+              <select
                 className="field pl-10"
                 name="repository_path"
-                placeholder="../evaluation_cases/02_null_handling_regression"
-              />
+                defaultValue="02_null_handling_regression"
+              >
+                <option value="">No repository — result will be unverified</option>
+                <option value="01_missing_environment_variable">Missing environment variable</option>
+                <option value="02_null_handling_regression">Null handling regression</option>
+                <option value="03_database_migration_bug">Database migration bug</option>
+                <option value="04_dependency_version_conflict">Dependency version conflict</option>
+                <option value="05_api_payload_contract_regression">API payload regression</option>
+                <option value="06_state_or_concurrency_bug">Concurrency bug</option>
+                <option value="07_timezone_bug">Timezone bug</option>
+                <option value="08_configuration_precedence_bug">Configuration precedence</option>
+                <option value="09_auth_token_validation_regression">Auth token regression</option>
+                <option value="10_misleading_stacktrace">Misleading stack trace</option>
+              </select>
             </div>
           </label>
           {error && (

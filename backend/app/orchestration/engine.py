@@ -28,6 +28,14 @@ def _load_case_metadata(repository_path: str | None, allowed_base: Path) -> dict
     return dict(json.loads(case_file.read_text(encoding="utf-8")))
 
 
+def _resolve_repository_path(repository_path: str | None, allowed_base: Path) -> str | None:
+    if not repository_path:
+        return None
+    requested = Path(repository_path)
+    candidate = requested if requested.is_absolute() else allowed_base / requested
+    return str(candidate.resolve())
+
+
 class InvestigationEngine:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
@@ -39,13 +47,16 @@ class InvestigationEngine:
         )
         db.add(investigation)
         db.flush()
-        metadata = _load_case_metadata(incident.repository_path, self.settings.sandbox_root)
+        repository_path = _resolve_repository_path(
+            incident.repository_path, self.settings.sandbox_root
+        )
+        metadata = _load_case_metadata(repository_path, self.settings.sandbox_root)
         context = InvestigationContext(
             title=incident.title,
             description=incident.description,
             logs=incident.logs,
             stack_trace=incident.stack_trace,
-            repository_path=incident.repository_path,
+            repository_path=repository_path,
             case_metadata=metadata,
         )
         provider = create_provider(self.settings)
