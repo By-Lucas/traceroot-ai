@@ -1,0 +1,123 @@
+{
+  "mode": "deterministic_demo",
+  "metrics": {
+    "cases": 10,
+    "raw_root_cause_accuracy": 0.9,
+    "vrca": 0.0,
+    "evidence_precision": 0.0,
+    "reproduction_success_rate": 0.0,
+    "false_confident_diagnosis_rate": 0.1
+  },
+  "cases": [
+    {
+      "case": "01_missing_environment_variable",
+      "diagnosis": "The PAYMENT_REGION environment variable is missing and startup accesses it as required configuration",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "02_null_handling_regression",
+      "diagnosis": "A null handling regression calls strip on an absent promo code",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "03_database_migration_bug",
+      "diagnosis": "The application reads users.timezone but the corresponding database migration was not applied",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "04_dependency_version_conflict",
+      "diagnosis": "The installed codec dependency version removed the decode_legacy API still used by the application",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "05_api_payload_contract_regression",
+      "diagnosis": "The webhook consumer expects customer_id at the root although the new contract nests it under customer",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "06_state_or_concurrency_bug",
+      "diagnosis": "The reservation check and decrement are non-atomic, allowing concurrent requests to oversell inventory",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "07_timezone_bug",
+      "diagnosis": "A naive local midnight is compared with UTC timestamps, excluding transactions around the timezone boundary",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "08_configuration_precedence_bug",
+      "diagnosis": "Configuration merge order lets the defaults file override the production environment value",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "09_auth_token_validation_regression",
+      "diagnosis": "JWT decoding disables expiration verification, allowing expired access tokens",
+      "confidence": 0.82,
+      "root_cause_correct": true,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": false
+    },
+    {
+      "case": "10_misleading_stacktrace",
+      "diagnosis": "The object storage service is timing out",
+      "confidence": 0.82,
+      "root_cause_correct": false,
+      "evidence_valid": false,
+      "verification_supports": false,
+      "reproduction_succeeded": false,
+      "verified_root_cause_correct": false,
+      "false_confident": true
+    }
+  ]
+}

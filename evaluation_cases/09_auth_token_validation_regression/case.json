@@ -1,0 +1,11 @@
+{
+  "slug": "09_auth_token_validation_regression",
+  "title": "Expired sessions remain accepted",
+  "incident_description": "Token validation stopped checking expiration after a library migration.",
+  "logs": "Security audit: expired JWT accepted by API",
+  "ground_truth": "JWT decoding disables expiration verification, allowing expired access tokens",
+  "evidence_file": "app.py",
+  "evidence_marker": "verify_exp",
+  "recommended_fix": "Enable expiration validation and add expired, malformed, and wrong-audience token tests.",
+  "alternatives": ["Client clock drift makes valid tokens appear expired"]
+}

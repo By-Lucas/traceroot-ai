@@ -1,0 +1,11 @@
+{
+  "slug": "01_missing_environment_variable",
+  "title": "Checkout crashes after deploy",
+  "incident_description": "Checkout workers fail immediately after deployment.",
+  "logs": "RuntimeError: PAYMENT_REGION is required",
+  "ground_truth": "The PAYMENT_REGION environment variable is missing and startup accesses it as required configuration",
+  "evidence_file": "app.py",
+  "evidence_marker": "PAYMENT_REGION",
+  "recommended_fix": "Validate PAYMENT_REGION during startup and configure it in the deployment environment.",
+  "alternatives": ["The payment provider is unavailable"]
+}

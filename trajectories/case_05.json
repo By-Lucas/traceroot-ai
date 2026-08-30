@@ -1,0 +1,49 @@
+{
+  "case": "05_api_payload_contract_regression",
+  "mode": "deterministic_demo",
+  "hidden_chain_of_thought_stored": false,
+  "steps": [
+    {
+      "stage": "triage",
+      "instruction_id": "triage.v1",
+      "summarized_decision": "Ranked two hypotheses",
+      "tools": []
+    },
+    {
+      "stage": "evidence",
+      "instruction_id": "evidence.v1",
+      "summarized_decision": "Matched provenance in app.py",
+      "tools": [
+        {
+          "name": "read_file",
+          "arguments": {
+            "path": "app.py"
+          },
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "stage": "reproduction",
+      "instruction_id": "reproduction.v1",
+      "summarized_decision": "Ran allowlisted reproduction",
+      "tools": [
+        {
+          "name": "execute_reproduction_script",
+          "arguments": {
+            "command_id": "reproduction"
+          },
+          "status": "completed",
+          "duration_ms": 29
+        }
+      ]
+    },
+    {
+      "stage": "verification",
+      "instruction_id": "verification.v1",
+      "summarized_decision": "Evidence and reproduction establish causality",
+      "verification_feedback": "Accepted",
+      "final_state": "VERIFIED"
+    }
+  ]
+}

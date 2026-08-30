@@ -1,0 +1,11 @@
+{
+  "slug": "05_api_payload_contract_regression",
+  "title": "Webhook processing rejects valid events",
+  "incident_description": "Provider changed payload nesting while consumer reads the old shape.",
+  "logs": "KeyError: 'customer_id' in webhook handler",
+  "ground_truth": "The webhook consumer expects customer_id at the root although the new contract nests it under customer",
+  "evidence_file": "app.py",
+  "evidence_marker": "customer_id",
+  "recommended_fix": "Read customer.id from the versioned payload and retain compatibility for the old contract.",
+  "alternatives": ["Webhook signatures are invalid"]
+}

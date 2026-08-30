@@ -1,0 +1,11 @@
+{
+  "slug": "06_state_or_concurrency_bug",
+  "title": "Inventory occasionally goes negative",
+  "incident_description": "Concurrent reservations pass a stale availability check.",
+  "logs": "InvariantViolation: available inventory is -1",
+  "ground_truth": "The reservation check and decrement are non-atomic, allowing concurrent requests to oversell inventory",
+  "evidence_file": "app.py",
+  "evidence_marker": "non-atomic",
+  "recommended_fix": "Perform the availability check and decrement atomically with a lock or conditional update.",
+  "alternatives": ["Inventory events were delivered out of order"]
+}

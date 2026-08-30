@@ -1,0 +1,11 @@
+{
+  "slug": "03_database_migration_bug",
+  "title": "Profile reads fail on new release",
+  "incident_description": "Application query expects a column absent from production schema.",
+  "logs": "OperationalError: no such column: users.timezone",
+  "ground_truth": "The application reads users.timezone but the corresponding database migration was not applied",
+  "evidence_file": "app.py",
+  "evidence_marker": "users.timezone",
+  "recommended_fix": "Apply the additive timezone migration before deploying the code that reads it.",
+  "alternatives": ["The database connection pool is exhausted"]
+}

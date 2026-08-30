@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: traceroot
+      POSTGRES_USER: traceroot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-traceroot-password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U traceroot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  backend:
+    build: ./backend
+    environment:
+      APP_ENV: production
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      DATABASE_URL: postgresql+psycopg://traceroot:${POSTGRES_PASSWORD:-local-traceroot-password}@postgres:5432/traceroot
+      FRONTEND_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
+      LLM_PROVIDER: ${LLM_PROVIDER:-demo}
+      LLM_MODEL: ${LLM_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      DEMO_MODE: ${DEMO_MODE:-true}
+      SANDBOX_ROOT: /evaluation_cases
+    volumes:
+      - ./evaluation_cases:/evaluation_cases:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports: ["8000:8000"]
+    read_only: true
+    tmpfs: ["/tmp"]
+    security_opt: ["no-new-privileges:true"]
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    depends_on: [backend]
+    ports: ["3000:3000"]
+    security_opt: ["no-new-privileges:true"]
+volumes:
+  postgres_data:

@@ -1,0 +1,1 @@
+"""Reasonable single-agent baseline."""

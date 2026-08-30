@@ -1,0 +1,11 @@
+{
+  "slug": "07_timezone_bug",
+  "title": "Daily report skips late transactions",
+  "incident_description": "UTC timestamps are compared to a naive local day boundary.",
+  "logs": "Report mismatch: expected 42 rows, got 39 near midnight",
+  "ground_truth": "A naive local midnight is compared with UTC timestamps, excluding transactions around the timezone boundary",
+  "evidence_file": "app.py",
+  "evidence_marker": "naive local",
+  "recommended_fix": "Construct timezone-aware local boundaries and convert them to UTC before querying.",
+  "alternatives": ["Three transactions were deleted"]
+}

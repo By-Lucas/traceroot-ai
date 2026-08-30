@@ -1,0 +1,11 @@
+{
+  "slug": "08_configuration_precedence_bug",
+  "title": "Production uses staging endpoint",
+  "incident_description": "A default file overrides the environment-specific endpoint.",
+  "logs": "Upstream host staging.internal resolved in production",
+  "ground_truth": "Configuration merge order lets the defaults file override the production environment value",
+  "evidence_file": "app.py",
+  "evidence_marker": "wrong precedence",
+  "recommended_fix": "Apply defaults first and environment overrides last, then test the resolved production config.",
+  "alternatives": ["Production DNS points to staging"]
+}

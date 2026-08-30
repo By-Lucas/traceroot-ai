@@ -1,0 +1,21 @@
+{
+  "mode": "deterministic_demo",
+  "warning": "These measurements validate the deterministic offline pipeline; they are not provider-backed LLM benchmark claims.",
+  "baseline": {
+    "cases": 10,
+    "raw_root_cause_accuracy": 0.9,
+    "vrca": 0.0,
+    "evidence_precision": 0.0,
+    "reproduction_success_rate": 0.0,
+    "false_confident_diagnosis_rate": 0.1
+  },
+  "traceroot": {
+    "cases": 10,
+    "raw_root_cause_accuracy": 1.0,
+    "vrca": 1.0,
+    "evidence_precision": 1.0,
+    "reproduction_success_rate": 1.0,
+    "false_confident_diagnosis_rate": 0.0
+  },
+  "delta_vrca": 1.0
+}

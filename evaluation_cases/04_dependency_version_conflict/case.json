@@ -1,0 +1,11 @@
+{
+  "slug": "04_dependency_version_conflict",
+  "title": "Parser fails after dependency update",
+  "incident_description": "A transitive upgrade removed a method used by the parser.",
+  "logs": "AttributeError: module 'codec' has no attribute 'decode_legacy'",
+  "ground_truth": "The installed codec dependency version removed the decode_legacy API still used by the application",
+  "evidence_file": "app.py",
+  "evidence_marker": "decode_legacy",
+  "recommended_fix": "Pin the compatible codec version or migrate to the supported decode API.",
+  "alternatives": ["The input file is corrupt"]
+}

@@ -1,0 +1,11 @@
+{
+  "slug": "10_misleading_stacktrace",
+  "title": "Upload fails with apparent storage timeout",
+  "incident_description": "The stack trace ends in storage, but malformed retry configuration causes a zero-second deadline.",
+  "logs": "StorageTimeout at client.put_object; network dashboard healthy",
+  "ground_truth": "A string-to-integer configuration conversion truncates a fractional upload timeout to zero, causing an immediate local timeout",
+  "evidence_file": "app.py",
+  "evidence_marker": "int(float",
+  "recommended_fix": "Parse fractional timeout as float, validate it is positive, and add configuration boundary tests.",
+  "alternatives": ["The object storage service is timing out"]
+}
