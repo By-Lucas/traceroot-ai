@@ -1,16 +1,35 @@
 "use client";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowRight, FileCode2, Shield } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
-import { api } from "@/lib/api";
+import { api, token } from "@/lib/api";
 type Incident = { id: string };
 type Investigation = { id: string };
 export default function NewIncident() {
   const router = useRouter();
+  const isClient = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
+  const authenticated = isClient && Boolean(token());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (isClient && !authenticated) {
+      router.replace("/login?next=/incidents/new");
+    }
+  }, [authenticated, isClient, router]);
+
+  if (!authenticated) {
+    return (
+      <main className="grid min-h-screen place-items-center text-sm text-[#8b95aa]">
+        Checking secure session…
+      </main>
+    );
+  }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);

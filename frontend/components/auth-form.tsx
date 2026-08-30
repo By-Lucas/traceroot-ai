@@ -21,7 +21,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       );
       localStorage.setItem("traceroot_access", body.access_token);
       localStorage.setItem("traceroot_refresh", body.refresh_token);
-      router.push("/dashboard");
+      const requested = new URLSearchParams(window.location.search).get("next");
+      const destination =
+        requested?.startsWith("/") && !requested.startsWith("//")
+          ? requested
+          : "/dashboard";
+      router.push(destination);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {
