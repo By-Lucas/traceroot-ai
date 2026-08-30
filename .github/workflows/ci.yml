@@ -20,4 +20,4 @@ jobs:
       - run: pip install -r backend/requirements-dev.txt
       - run: ruff check backend && ruff format --check backend
       - run: cd backend && mypy app
-      - run: cd backend && pytest
+      - run: cd backend && python -m pytest
