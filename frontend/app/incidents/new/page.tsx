@@ -1,7 +1,19 @@
 "use client";
-import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowRight, FileCode2, Shield } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  FileCode2,
+  FlaskConical,
+  Shield,
+} from "lucide-react";
 import { Shell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
 import { api, token } from "@/lib/api";
@@ -17,6 +29,7 @@ export default function NewIncident() {
   const authenticated = isClient && Boolean(token());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (isClient && !authenticated) {
       router.replace("/login?next=/incidents/new");
@@ -50,6 +63,33 @@ export default function NewIncident() {
       setBusy(false);
     }
   }
+  function loadVerifiedScenario() {
+    const form = formRef.current;
+    if (!form) return;
+    const set = (name: string, value: string) => {
+      const field = form.elements.namedItem(name) as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | HTMLSelectElement
+        | null;
+      if (field) field.value = value;
+    };
+    set("title", "Checkout returns 500 when promo code is omitted");
+    set("severity", "high");
+    set(
+      "description",
+      "After the checkout request refactor, orders without an optional promo_code fail before pricing is calculated. Orders with a promo code still succeed.",
+    );
+    set(
+      "logs",
+      "ERROR checkout.request order_id=ord-1042\nAttributeError: 'NoneType' object has no attribute 'strip'",
+    );
+    set(
+      "stack_trace",
+      "Traceback (most recent call last):\n  File \"checkout_service.py\", line 18, in create_checkout\n    normalized_promo = normalize_promo(request.promo_code)\n  File \"checkout_service.py\", line 13, in normalize_promo\n    return promo_code.strip().upper()\nAttributeError: 'NoneType' object has no attribute 'strip'",
+    );
+    set("repository_path", "02_null_handling_regression");
+  }
   return (
     <Shell>
       <PageHeader
@@ -57,8 +97,30 @@ export default function NewIncident() {
         title="Start with the failure"
         description="Give TraceRoot the raw artifacts. The agents will separate evidence from plausible noise."
       />
-      <form onSubmit={submit} className="grid gap-6 xl:grid-cols-[1fr_340px]">
+      <form
+        ref={formRef}
+        onSubmit={submit}
+        className="grid gap-6 xl:grid-cols-[1fr_340px]"
+      >
         <section className="panel space-y-5 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#304162] bg-[#101725] p-4">
+            <div>
+              <div className="text-sm font-medium">
+                Reproducible validation scenario
+              </div>
+              <p className="mt-1 text-xs text-[#7f8ca3]">
+                Loads mutually consistent incident data and repository evidence.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn"
+              onClick={loadVerifiedScenario}
+            >
+              <FlaskConical size={15} />
+              Load real case
+            </button>
+          </div>
           <div className="grid gap-5 md:grid-cols-[1fr_160px]">
             <label className="text-sm text-[#aeb6c7]">
               Incident title
@@ -124,19 +186,39 @@ export default function NewIncident() {
               <select
                 className="field pl-10"
                 name="repository_path"
-                defaultValue="02_null_handling_regression"
+                defaultValue=""
               >
-                <option value="">No repository — result will be unverified</option>
-                <option value="01_missing_environment_variable">Missing environment variable</option>
-                <option value="02_null_handling_regression">Null handling regression</option>
-                <option value="03_database_migration_bug">Database migration bug</option>
-                <option value="04_dependency_version_conflict">Dependency version conflict</option>
-                <option value="05_api_payload_contract_regression">API payload regression</option>
-                <option value="06_state_or_concurrency_bug">Concurrency bug</option>
+                <option value="">
+                  No repository — result will be unverified
+                </option>
+                <option value="01_missing_environment_variable">
+                  Missing environment variable
+                </option>
+                <option value="02_null_handling_regression">
+                  Null handling regression
+                </option>
+                <option value="03_database_migration_bug">
+                  Database migration bug
+                </option>
+                <option value="04_dependency_version_conflict">
+                  Dependency version conflict
+                </option>
+                <option value="05_api_payload_contract_regression">
+                  API payload regression
+                </option>
+                <option value="06_state_or_concurrency_bug">
+                  Concurrency bug
+                </option>
                 <option value="07_timezone_bug">Timezone bug</option>
-                <option value="08_configuration_precedence_bug">Configuration precedence</option>
-                <option value="09_auth_token_validation_regression">Auth token regression</option>
-                <option value="10_misleading_stacktrace">Misleading stack trace</option>
+                <option value="08_configuration_precedence_bug">
+                  Configuration precedence
+                </option>
+                <option value="09_auth_token_validation_regression">
+                  Auth token regression
+                </option>
+                <option value="10_misleading_stacktrace">
+                  Misleading stack trace
+                </option>
               </select>
             </div>
           </label>

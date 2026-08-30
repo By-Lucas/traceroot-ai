@@ -1,5 +1,7 @@
 "use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -12,58 +14,90 @@ import type { LucideIcon } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
 import { Status } from "@/components/status";
-
-const investigations = [
-  {
-    id: "demo-null",
-    title: "Discount API returns 500",
-    status: "VERIFIED",
-    confidence: 96,
-    time: "38s",
-    severity: "SEV-2",
-  },
-  {
-    id: "demo-token",
-    title: "Expired sessions accepted",
-    status: "VERIFIED",
-    confidence: 94,
-    time: "51s",
-    severity: "SEV-1",
-  },
-  {
-    id: "demo-storage",
-    title: "Upload timeout spike",
-    status: "UNVERIFIED",
-    confidence: 35,
-    time: "29s",
-    severity: "SEV-2",
-  },
-];
-const metrics: Array<{
-  label: string;
-  value: string | number;
-  icon: LucideIcon;
-  color: string;
-}> = [
-  { label: "Active", value: 3, icon: Radar, color: "#8ca1fb" },
-  { label: "Verified", value: 24, icon: ShieldCheck, color: "#55d5a1" },
-  {
-    label: "Verification rate",
-    value: "83%",
-    icon: CheckCircle2,
-    color: "#55d5a1",
-  },
-  { label: "Avg. duration", value: "44s", icon: Clock3, color: "#eab563" },
-  { label: "Evidence coverage", value: "91%", icon: Radar, color: "#8ca1fb" },
-];
+import { api } from "@/lib/api";
+import type { Incident, InvestigationListItem } from "@/lib/domain";
 
 export function Dashboard() {
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [investigations, setInvestigations] = useState<InvestigationListItem[]>(
+    [],
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    Promise.all([
+      api<Incident[]>("/incidents"),
+      api<InvestigationListItem[]>("/investigations"),
+    ])
+      .then(([incidentRows, investigationRows]) => {
+        setIncidents(incidentRows);
+        setInvestigations(investigationRows);
+      })
+      .catch((reason) =>
+        setError(
+          reason instanceof Error ? reason.message : "Could not load dashboard",
+        ),
+      )
+      .finally(() => setLoading(false));
+  }, []);
+
+  const metrics = useMemo(() => {
+    const total = investigations.length;
+    const verified = investigations.filter(
+      (item) => item.status === "VERIFIED",
+    ).length;
+    const average = total
+      ? investigations.reduce((sum, item) => sum + item.duration_ms, 0) / total
+      : 0;
+    const withEvidence = investigations.filter(
+      (item) => item.evidence_count > 0,
+    ).length;
+    return [
+      {
+        label: "Active",
+        value: incidents.filter((item) => item.status === "open").length,
+        icon: Radar,
+        color: "#8ca1fb",
+      },
+      {
+        label: "Verified",
+        value: verified,
+        icon: ShieldCheck,
+        color: "#55d5a1",
+      },
+      {
+        label: "Verification rate",
+        value: total ? `${Math.round((verified / total) * 100)}%` : "—",
+        icon: CheckCircle2,
+        color: "#55d5a1",
+      },
+      {
+        label: "Avg. duration",
+        value: total ? `${(average / 1000).toFixed(1)}s` : "—",
+        icon: Clock3,
+        color: "#eab563",
+      },
+      {
+        label: "Evidence coverage",
+        value: total ? `${Math.round((withEvidence / total) * 100)}%` : "—",
+        icon: Radar,
+        color: "#8ca1fb",
+      },
+    ] satisfies Array<{
+      label: string;
+      value: string | number;
+      icon: LucideIcon;
+      color: string;
+    }>;
+  }, [incidents, investigations]);
+
   return (
     <Shell>
       <PageHeader
         eyebrow="Operational intelligence"
         title="Investigation command"
-        description="TraceRoot correlates runtime, source and reproduction evidence before it accepts a root cause."
+        description="Live metrics calculated from your persisted incidents and investigations."
         action={
           <Link href="/incidents/new" className="btn btn-primary">
             <Plus size={16} />
@@ -71,6 +105,14 @@ export function Dashboard() {
           </Link>
         }
       />
+      {error && (
+        <div
+          role="alert"
+          className="mb-5 rounded-lg border border-[#5d3038] bg-[#261216] p-4 text-sm text-[#f3828d]"
+        >
+          {error}
+        </div>
+      )}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {metrics.map(({ label, value, icon: Icon, color }) => (
           <div className="panel p-5" key={label}>
@@ -78,10 +120,10 @@ export function Dashboard() {
               <span className="label">{label}</span>
               <Icon size={16} color={color} />
             </div>
-            <div className="metric mt-4 text-3xl font-semibold">{value}</div>
-            <div className="mt-2 text-xs text-[#667087]">
-              Deterministic demo dataset
+            <div className="metric mt-4 text-3xl font-semibold">
+              {loading ? "…" : value}
             </div>
+            <div className="mt-2 text-xs text-[#667087]">Current workspace</div>
           </div>
         ))}
       </section>
@@ -90,89 +132,88 @@ export function Dashboard() {
           <div>
             <h2 className="font-semibold">Recent investigations</h2>
             <p className="mt-1 text-xs text-[#747e92]">
-              Every accepted claim remains linked to its proof.
+              Persisted runs only; no synthetic rows.
             </p>
           </div>
           <Link className="text-sm text-[#98aaff]" href="/incidents">
-            View all
+            View incidents
           </Link>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-left text-sm">
-            <thead className="label border-b border-[#202735]">
-              <tr>
-                {[
-                  "Incident",
-                  "Severity",
-                  "State",
-                  "Confidence",
-                  "Duration",
-                  "",
-                ].map((x) => (
-                  <th className="px-5 py-3 font-medium" key={x}>
-                    {x}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {investigations.map((item) => (
-                <tr
-                  className="border-b border-[#1b212d] last:border-0 hover:bg-[#121721]"
-                  key={item.id}
-                >
-                  <td className="px-5 py-4 font-medium">{item.title}</td>
-                  <td className="px-5 py-4 text-[#8e98ab]">{item.severity}</td>
-                  <td className="px-5 py-4">
-                    <Status value={item.status} />
-                  </td>
-                  <td className="px-5 py-4 font-mono text-xs">
-                    {item.confidence}%
-                  </td>
-                  <td className="px-5 py-4 text-[#8e98ab]">{item.time}</td>
-                  <td className="px-5 py-4">
-                    <Link
-                      aria-label={`Open ${item.title}`}
-                      href={`/investigations/${item.id}`}
-                    >
-                      <ArrowUpRight size={16} />
-                    </Link>
-                  </td>
+        {loading ? (
+          <p className="p-8 text-sm text-[#818ca1]">Loading investigations…</p>
+        ) : investigations.length === 0 ? (
+          <div className="p-10 text-center">
+            <p className="font-medium">No investigation has run yet.</p>
+            <Link href="/incidents/new" className="btn mt-4">
+              Create the first incident
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-sm">
+              <thead className="label border-b border-[#202735]">
+                <tr>
+                  {[
+                    "Incident",
+                    "Severity",
+                    "State",
+                    "Confidence",
+                    "Duration",
+                    "",
+                  ].map((item) => (
+                    <th className="px-5 py-3 font-medium" key={item}>
+                      {item}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {investigations.slice(0, 10).map((item) => (
+                  <tr
+                    className="border-b border-[#1b212d] last:border-0 hover:bg-[#121721]"
+                    key={item.id}
+                  >
+                    <td className="px-5 py-4 font-medium">
+                      {item.incident_title}
+                    </td>
+                    <td className="px-5 py-4 uppercase text-[#8e98ab]">
+                      {item.severity}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Status value={item.status} />
+                    </td>
+                    <td className="px-5 py-4 font-mono text-xs">
+                      {Math.round(item.confidence * 100)}%
+                    </td>
+                    <td className="px-5 py-4 text-[#8e98ab]">
+                      {(item.duration_ms / 1000).toFixed(1)}s
+                    </td>
+                    <td className="px-5 py-4">
+                      <Link
+                        aria-label={`Open ${item.incident_title}`}
+                        href={`/investigations/${item.id}`}
+                      >
+                        <ArrowUpRight size={16} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <section className="panel p-5">
-          <div className="label">Verification posture</div>
-          <div className="mt-6 flex h-24 items-end gap-2">
-            {[48, 58, 55, 72, 69, 81, 78, 87, 82, 91, 88, 94].map((n, i) => (
-              <div
-                key={i}
-                className="flex-1 rounded-t bg-[#596fc9]"
-                style={{ height: `${n}%`, opacity: 0.35 + i * 0.045 }}
-              />
-            ))}
-          </div>
-          <div className="mt-3 flex justify-between text-xs text-[#687286]">
-            <span>12 runs ago</span>
-            <span>Now</span>
-          </div>
-        </section>
-        <section className="panel p-5">
-          <div className="label">Evidence gate</div>
-          <p className="mt-4 text-lg font-medium">
-            No root cause without evidence.
-          </p>
-          <p className="mt-2 text-sm leading-6 text-[#8490a4]">
-            Runtime + source + reproduction + independent verification. Missing
-            proof yields <b className="text-[#adb6c8]">UNVERIFIED</b>, never
-            invented certainty.
-          </p>
-        </section>
-      </div>
+      <section className="panel mt-6 p-5">
+        <div className="label">Evidence gate</div>
+        <p className="mt-4 text-lg font-medium">
+          No root cause without evidence.
+        </p>
+        <p className="mt-2 text-sm leading-6 text-[#8490a4]">
+          Runtime, source, controlled reproduction and independent verification
+          are required. Missing proof yields{" "}
+          <b className="text-[#adb6c8]">UNVERIFIED</b>.
+        </p>
+      </section>
     </Shell>
   );
 }

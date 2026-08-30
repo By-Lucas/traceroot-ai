@@ -84,6 +84,19 @@ class InvestigationResponse(BaseModel):
     evidence: list[dict[str, Any]] = []
 
 
+class InvestigationListItem(BaseModel):
+    id: str
+    incident_id: str
+    incident_title: str
+    severity: str
+    status: str
+    confidence: float
+    root_cause: str | None
+    duration_ms: int
+    evidence_count: int
+    created_at: datetime
+
+
 class KnowledgeCreate(BaseModel):
     title: str = Field(min_length=2, max_length=240)
     source_type: Literal["markdown", "txt", "json"]

@@ -34,6 +34,14 @@ async def collect_evidence(
         try:
             content = sandbox.read_file(evidence_file)
             marker = str(context.case_metadata.get("evidence_marker", ""))
+            matching_line = next(
+                (
+                    (number, line.strip())
+                    for number, line in enumerate(content.splitlines(), 1)
+                    if marker and marker in line
+                ),
+                None,
+            )
             summary = next(
                 (line.strip() for line in content.splitlines() if marker and marker in line),
                 content[:500],
@@ -41,7 +49,7 @@ async def collect_evidence(
             items.append(
                 EvidenceOutput(
                     type="source_code",
-                    location=f"{evidence_file}:1",
+                    location=f"{evidence_file}:{matching_line[0] if matching_line else 1}",
                     content_summary=summary,
                     supports=["H1"],
                     contradicts=["H2"],

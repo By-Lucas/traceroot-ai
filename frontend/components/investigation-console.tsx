@@ -80,8 +80,8 @@ const demo: Investigation = {
     {
       id: "e2",
       type: "source_code",
-      location: "app.py:2",
-      content_summary: "return promo.strip().upper() — no None guard",
+      location: "checkout_service.py:13",
+      content_summary: "return promo_code.strip().upper() — no None guard",
       supports: ["H1"],
       confidence: 0.96,
       content_hash: "ce72…bd30",
@@ -111,38 +111,6 @@ function GraphNode({ data }: { data: { label: string; kind: string } }) {
     </div>
   );
 }
-const nodes = [
-  {
-    id: "i",
-    position: { x: 0, y: 80 },
-    data: { label: "500 on discount", kind: "incident" },
-    type: "trace",
-  },
-  {
-    id: "h",
-    position: { x: 210, y: 20 },
-    data: { label: "Null regression", kind: "hypothesis" },
-    type: "trace",
-  },
-  {
-    id: "e",
-    position: { x: 210, y: 145 },
-    data: { label: "app.py:2", kind: "evidence" },
-    type: "trace",
-  },
-  {
-    id: "r",
-    position: { x: 430, y: 80 },
-    data: { label: "Reproduced", kind: "test" },
-    type: "trace",
-  },
-  {
-    id: "c",
-    position: { x: 640, y: 80 },
-    data: { label: "Verified cause", kind: "root cause" },
-    type: "trace",
-  },
-];
 const edges = [
   { id: "1", source: "i", target: "h", label: "suggests" },
   { id: "2", source: "e", target: "h", label: "supports" },
@@ -150,16 +118,104 @@ const edges = [
   { id: "4", source: "r", target: "c", label: "verified by", animated: true },
 ];
 export function InvestigationConsole({ id }: { id: string }) {
-  const [data, setData] = useState<Investigation>(demo);
-  const [loading, setLoading] = useState(!id.startsWith("demo"));
+  const explicitDemo = id.startsWith("demo");
+  const [data, setData] = useState<Investigation | null>(
+    explicitDemo ? demo : null,
+  );
+  const [loading, setLoading] = useState(!explicitDemo);
+  const [error, setError] = useState("");
   useEffect(() => {
-    if (!id.startsWith("demo")) {
+    if (!explicitDemo) {
       api<Investigation>(`/investigations/${id}`)
         .then(setData)
-        .catch(() => setData(demo))
+        .catch((reason) =>
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : "Could not load investigation",
+          ),
+        )
         .finally(() => setLoading(false));
     }
-  }, [id]);
+  }, [explicitDemo, id]);
+
+  if (loading)
+    return (
+      <Shell>
+        <PageHeader
+          eyebrow={`Investigation / ${id.slice(0, 8)}`}
+          title="Assembling evidence…"
+          description="Loading the persisted investigation record."
+        />
+      </Shell>
+    );
+  if (error || !data)
+    return (
+      <Shell>
+        <PageHeader
+          eyebrow={`Investigation / ${id.slice(0, 8)}`}
+          title="Investigation unavailable"
+          description="No demo fallback was applied."
+        />
+        <div role="alert" className="panel p-6 text-sm text-[#f3828d]">
+          {error || "Investigation not found"}
+        </div>
+      </Shell>
+    );
+
+  const nodes = [
+    {
+      id: "i",
+      position: { x: 0, y: 80 },
+      data: {
+        label: String(
+          (data.report.incident as { title?: string } | undefined)?.title ??
+            data.id,
+        ).slice(0, 24),
+        kind: "incident",
+      },
+      type: "trace",
+    },
+    {
+      id: "h",
+      position: { x: 210, y: 20 },
+      data: {
+        label: (data.hypotheses[0]?.claim ?? "No hypothesis").slice(0, 24),
+        kind: "hypothesis",
+      },
+      type: "trace",
+    },
+    {
+      id: "e",
+      position: { x: 210, y: 145 },
+      data: {
+        label: (data.evidence[0]?.location ?? "No evidence").slice(0, 24),
+        kind: "evidence",
+      },
+      type: "trace",
+    },
+    {
+      id: "r",
+      position: { x: 430, y: 80 },
+      data: {
+        label:
+          data.report.regression_verification === "REPRODUCTION_CONFIRMED"
+            ? "Reproduced"
+            : "Not reproduced",
+        kind: "test",
+      },
+      type: "trace",
+    },
+    {
+      id: "c",
+      position: { x: 640, y: 80 },
+      data: {
+        label: data.status === "VERIFIED" ? "Verified cause" : data.status,
+        kind: "root cause",
+      },
+      type: "trace",
+    },
+  ];
   const repro = data.report.reproduction as
     | { command?: string; exit_code?: number; stdout?: string }
     | undefined;
@@ -167,7 +223,7 @@ export function InvestigationConsole({ id }: { id: string }) {
     <Shell>
       <PageHeader
         eyebrow={`Investigation / ${id.slice(0, 8)}`}
-        title={loading ? "Assembling evidence…" : "Root cause review"}
+        title={explicitDemo ? "Example root cause review" : "Root cause review"}
         description="A causal record of what the agents observed, executed and independently verified."
         action={<Status value={data.status} />}
       />

@@ -13,7 +13,7 @@ def sandbox() -> RepositorySandbox:
 
 def test_reads_and_runs_allowlisted_reproduction() -> None:
     box = sandbox()
-    assert "promo.strip" in box.read_file("app.py")
+    assert "promo_code.strip" in box.read_file("checkout_service.py")
     result = box.run("reproduction")
     assert result.exit_code == 0 and "TRACEROOT_REPRODUCED" in result.stdout
 

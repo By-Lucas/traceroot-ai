@@ -42,7 +42,7 @@ def main() -> None:
     trajectories = ROOT / "trajectories"
     trajectories.mkdir(exist_ok=True)
     for index, (case_dir, case) in enumerate(cases, 1):
-        source = (case_dir / "app.py").read_text(encoding="utf-8")
+        source = (case_dir / case.get("evidence_file", "app.py")).read_text(encoding="utf-8")
         baseline = diagnose(case, source)
         baseline_score = score_case(
             predicted=baseline.root_cause,

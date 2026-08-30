@@ -24,6 +24,9 @@ def test_golden_investigation_returns_verified_report(
     body = result.json()
     assert body["status"] == "VERIFIED"
     assert body["root_cause"] and len(body["evidence"]) >= 2
+    listed = client.get("/api/v1/investigations", headers=auth_headers)
+    assert listed.status_code == 200
+    assert listed.json()[0]["incident_title"] == "Discount API returns 500"
     trajectory = client.get(f"/api/v1/investigations/{body['id']}/trajectory", headers=auth_headers)
     assert [step["stage"] for step in trajectory.json()] == [
         "triage",
@@ -43,6 +46,22 @@ def test_without_repository_is_unverified(client: TestClient, auth_headers: dict
     assert result.status_code == 201
     assert result.json()["status"] == "UNVERIFIED"
     assert result.json()["root_cause"] is None
+
+
+def test_mismatched_case_cannot_verify_unrelated_incident(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    request = payload()
+    request.update(
+        title="Image upload is slow",
+        description="Large uploads time out while the object storage dependency is unavailable.",
+        logs="TimeoutError: object storage did not respond",
+        stack_trace="storage.py:44 in upload",
+    )
+    created = client.post("/api/v1/incidents", json=request, headers=auth_headers).json()
+    result = client.post(f"/api/v1/incidents/{created['id']}/investigate", headers=auth_headers)
+    assert result.status_code == 201
+    assert result.json()["status"] == "UNVERIFIED"
 
 
 def test_user_cannot_read_another_workspace(

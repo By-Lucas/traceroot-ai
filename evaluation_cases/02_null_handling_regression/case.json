@@ -1,11 +1,13 @@
 {
   "slug": "02_null_handling_regression",
   "title": "Discount calculation returns 500",
-  "incident_description": "Orders without promo codes fail after refactor.",
-  "logs": "AttributeError: 'NoneType' object has no attribute 'strip'",
+  "incident_description": "After the checkout request refactor, orders without an optional promo_code fail before pricing is calculated.",
+  "logs": "ERROR checkout.request order_id=ord-1042\nAttributeError: 'NoneType' object has no attribute 'strip'",
   "ground_truth": "A null handling regression calls strip on an absent promo code",
-  "evidence_file": "app.py",
-  "evidence_marker": "promo.strip",
+  "evidence_file": "checkout_service.py",
+  "evidence_marker": "promo_code.strip",
+  "match_signals": ["promo", "strip", "nonetype"],
+  "minimum_signal_matches": 2,
   "recommended_fix": "Normalize a missing promo code before string operations and add a regression test.",
   "alternatives": ["The pricing database timed out"]
 }

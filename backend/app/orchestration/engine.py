@@ -36,6 +36,17 @@ def _resolve_repository_path(repository_path: str | None, allowed_base: Path) ->
     return str(candidate.resolve())
 
 
+def _metadata_matches_incident(metadata: dict[str, Any], incident: Incident) -> bool:
+    signals = [str(item).lower() for item in metadata.get("match_signals", [])]
+    if not signals:
+        return True
+    artifacts = " ".join(
+        (incident.title, incident.description, incident.logs, incident.stack_trace)
+    ).lower().replace("'", "")
+    minimum = int(metadata.get("minimum_signal_matches", len(signals)))
+    return sum(signal in artifacts for signal in signals) >= minimum
+
+
 class InvestigationEngine:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
@@ -51,6 +62,8 @@ class InvestigationEngine:
             incident.repository_path, self.settings.sandbox_root
         )
         metadata = _load_case_metadata(repository_path, self.settings.sandbox_root)
+        if not _metadata_matches_incident(metadata, incident):
+            metadata = {}
         context = InvestigationContext(
             title=incident.title,
             description=incident.description,

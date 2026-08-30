@@ -2,13 +2,39 @@ from typing import Any
 
 from fastapi import APIRouter
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.api.dependencies import CurrentUser, DbSession
-from app.models import Trajectory
-from app.schemas.domain import InvestigationResponse
+from app.models import Incident, Investigation, Trajectory
+from app.schemas.domain import InvestigationListItem, InvestigationResponse
 from app.services.domain import investigation_response, owned_investigation
 
 router = APIRouter(prefix="/investigations", tags=["investigations"])
+
+
+@router.get("", response_model=list[InvestigationListItem])
+def list_investigations(user: CurrentUser, db: DbSession) -> list[InvestigationListItem]:
+    rows = db.scalars(
+        select(Investigation)
+        .options(selectinload(Investigation.incident), selectinload(Investigation.evidence))
+        .where(Investigation.incident.has(Incident.workspace.has(owner_id=user.id)))
+        .order_by(Investigation.created_at.desc())
+    ).all()
+    return [
+        InvestigationListItem(
+            id=item.id,
+            incident_id=item.incident_id,
+            incident_title=item.incident.title,
+            severity=item.incident.severity,
+            status=item.status,
+            confidence=item.confidence,
+            root_cause=item.root_cause,
+            duration_ms=item.duration_ms,
+            evidence_count=len(item.evidence),
+            created_at=item.created_at,
+        )
+        for item in rows
+    ]
 
 
 @router.get("/{investigation_id}", response_model=InvestigationResponse)
